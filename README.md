@@ -12,11 +12,11 @@ Make sure you have a HWRT DirectX 16 SM6 Capable GPU, the sample project runs ar
 # __How to Install__
 1: Install Unreal Engine 5.2.1 Source  if you havent already
 
--Should be 108GB in size, make sure to install on a fast drive, or you will be waiting DAYS for it to compile
+  -Should be 108GB in size, make sure to install on a fast drive, or you will be waiting DAYS for it to compile
 
--https://www.unrealengine.com/en-US/ue-on-github
+  -https://www.unrealengine.com/en-US/ue-on-github
 
--https://dev.epicgames.com/documentation/en-us/unreal-engine/building-unreal-engine-from-source
+  -https://dev.epicgames.com/documentation/en-us/unreal-engine/building-unreal-engine-from-source
 
 
 
@@ -26,9 +26,9 @@ Make sure you have a HWRT DirectX 16 SM6 Capable GPU, the sample project runs ar
 
 3: Replace/add files from this repository to your Engine Source
 
--NOTE: For RayTracingDebug.cpp you must find the if statement for enabling the PrimaryRays viewmode in your source, and Replace it with the version on this Repository
+  -NOTE: For RayTracingDebug.cpp you must find the if statement for enabling the PrimaryRays viewmode in your source, and Replace it with the version on this Repository
 
--Other files should be only Replace/Add
+  -Other files should be only Replace/Add
 
 
 
@@ -42,11 +42,11 @@ Make sure you have a HWRT DirectX 16 SM6 Capable GPU, the sample project runs ar
 
 6: If all stars Align, you should successfully load into the project without any Explosions or Crashes
 
--Load into "emptytestmap" and Click the AquaRayController Actor
+  -Load into "emptytestmap" and Click the AquaRayController Actor
 
--In the Details Panel, Click "Apply Settings", and "Enable Aquaray"
+  -In the Details Panel, Click "Apply Settings", and "Enable Aquaray"
 
--After Clicking the button of Doom, you will be either Greeted by a "D3D Crashed" window, or a Fantastic Fully Raytraced Scene in your Viewport
+  -After Clicking the button of Doom, you will be either Greeted by a "D3D Crashed" window, or a Fantastic Fully Raytraced Scene in your Viewport
 
 # __Footnotes__
 
