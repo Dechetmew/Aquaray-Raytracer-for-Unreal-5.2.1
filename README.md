@@ -6,7 +6,8 @@ I was always fascinated by Raytracing for a long time, wanting to make a Game wh
 
 After YEARS of brute forcing a solution, I came up with this.... hack. It uses Unreal Engine's Raytracing Debug System to sneak in Custom Raytracing Passes, activating them using Console Commands.
 
-It should work in Unreal 5.2.1, but im not sure about other versions. But you can try
+It should work in Unreal 5.2.1, but im not sure about other versions. But you can try.
+
 Make sure you have a HWRT DirectX 16 SM6 Capable GPU, the sample project runs around 120fps on Geforce RTX 3050 
 
 # __How to Install__
