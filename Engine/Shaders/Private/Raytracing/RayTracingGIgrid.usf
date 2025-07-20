@@ -1,0 +1,175 @@
+// AQUARAY RAYTRACER GLOBAL ILLUMINATION - v0.4.13
+// Method: 
+
+// INCLUDES
+#include "../DeferredLightingCommon.ush"
+#include "RayTracingCommon.ush"
+#include "RayTracingDeferredShadingCommon.ush"
+#include "RayTracingLightingCommon.ush"
+#include "AquarayStructs.ush"
+#include "AquarayFunctions.ush"
+
+// SHADERS INPUTS/OUTPUTS - Manage in RayTracingPrimaryRays.cpp
+float4 ColorInput1;
+float4 ColorInput2;
+float4 ColorInput3;
+float4 ColorInput4;
+float4 ColorInput5;
+float4 ColorInput6;
+float4 ColorInput7;
+float4 ColorInput8;
+float4 ColorInput9;
+float FloatInput1;
+float FloatInput2;
+float FloatInput3;
+float FloatInput4;
+float FloatInput5;
+float FloatInput6;
+float FloatInput7;
+float FloatInput8;
+float FloatInput9;
+int IntInput1; //Amount of Samples (5min 50max)
+int IntInput2;
+int IntInput3;
+int IntInput4;
+int IntInput5;
+int IntInput6;
+int IntInput7;
+int IntInput8;
+int IntInput9;
+float4 PriorityInput1;
+float4 PriorityInput2;
+float4 PriorityInput3;
+float4 PriorityInput4;
+float4 PriorityInput5;
+
+RaytracingAccelerationStructure TLAS;
+RWTexture2D<float4> RWProbeTexture;
+
+// Returns the world position of a GI Probe
+// Problem: Struct-Dependent Functions break when declared outside the main file
+float3 GetProbeWorldPos(int ProbeIndex, float3 CameraPositionWS, float JitterValue)
+{
+		int maxValue = 86; // Wrap at 86, so 85 is the highest allowed before wrapping
+
+		int SamplingPosition = ProbeIndex % maxValue; //ID of One of the 85 probes per layer
+		int LayerPosition = ProbeIndex / maxValue; //Which distance layer we are on
+	
+		float Offset = (Layers[LayerPosition] / 2.0f) * ((JitterValue - 0.5) * 2.0f); //add jittering based on distance
+		float LayerValue = Layers[LayerPosition];
+		float3 DistanceOffset = MetersToCenti(LayerValue);
+		return CameraPositionWS + (DirectionSet[SamplingPosition] * DistanceOffset); //get probe pos
+}
+
+/////////////////////////////////////////////////// RAYGEN SHADER
+RAY_TRACING_ENTRY_RAYGEN(FRayTracingLightGridShaderRGS)
+{
+	//Struct Setup
+	FMaterialClosestHitPayload Payload;
+	FMinimalPayload MinimalPayload;
+
+	uint2 PixelCoord = DispatchRaysIndex().xy;
+	//use PixelCoord.x and PixelCoord.y to get the current rendered pixel as int
+	float3 Final = float3(0.0f, 0.0f, 0.0f);
+	float3 Accumulator = float3(0.0f, 0.0f, 0.0f);
+	float3 SunLightColor = View.DirectionalLightColor.rgb;
+	float3 SunDirection = View.AtmosphereLightDirection[0].xyz;
+
+	//Translate Input data
+	//int GISamples = IntInput1;
+	int GISamples = 25; //temp
+	
+	// INITIAL RAY SETUP
+	// RayTMax accepts values in centimeters
+	FRayDesc Ray = CreatePrimaryRay(float2(0.0f,0.0f)); //gets the camera world pos
+	FRayCone RayCone = (FRayCone)0;
+	const uint RayFlags = RAY_FLAG_CULL_BACK_FACING_TRIANGLES;
+	const uint InstanceInclusionMask = RAY_TRACING_MASK_ALL;
+	const bool bEnableSkyLightContribution = false;
+	const bool bIgnoreTranslucentMaterials = false;
+	Ray.Direction = float3(0.0f, 0.0f, 0.0f);
+	Ray.TMin = 0.0f;
+	Ray.TMax = MetersToCenti(100.0f);	
+	
+	if (PixelCoord.y == 0 && PixelCoord.x < 1020) //last 4 pixels arent used (Note to self: dont forget the texture starts from zero dammit)
+	{
+		float RandOffset1 = float3(12.9898f, 78.233f, 45.164f) * (PixelCoord.x + 1);
+		float RandInput1 = GeometryRand(RandOffset1, 733.5f);
+		Ray.Origin = GetProbeWorldPos(PixelCoord.x, Ray.Origin, RandInput1);
+		float3 ProbeWorldPos = Ray.Origin;
+		
+		for (int i = 0; i < GISamples; i++)
+		{
+			float RandOffset2 = float3(12.9898f, 78.233f, 45.164f) * (i + 1);
+		
+			float2 RandInput2 = GeometryRand(RandOffset2, 733.5f);
+			Ray.Direction = UniformSampleSphere(RandInput2);
+		
+			Payload = TraceMaterialRay(
+				TLAS,
+				RayFlags,
+				InstanceInclusionMask,
+				Ray,
+				RayCone,
+				bEnableSkyLightContribution,
+				bIgnoreTranslucentMaterials);
+			
+			if (Payload.IsHit())
+			{
+				//We hit a wall
+				if(CanBeLit(Payload.WorldNormal, SunDirection))
+				{
+					Ray.Origin + Ray.Direction * Payload.HitT + (Payload.WorldNormal * 0.001f);
+					Ray.Direction = SunDirection;
+				
+					MinimalPayload = TraceVisibilityRay(
+						TLAS,
+						RayFlags,
+						RAY_TRACING_PAYLOAD_INPUT_FLAG_NONE,
+						InstanceInclusionMask,
+						Ray);
+					
+					if(MinimalPayload.IsHit())
+					{
+						//We have a Diffuse Bounce
+						Accumulator = Accumulator + (Lambert(SunDirection, Payload.WorldNormal) * Payload.BaseColor);
+					}
+					else
+					{
+						//We hit a wall again
+						Accumulator = Accumulator + float3(0.0f, 0.0f, 0.0f);
+					}
+				}
+				else
+				{
+					//The Surface cannot be Lit Anyways
+					Accumulator = Accumulator + float3(0.0f, 0.0f, 0.0f);
+				}
+			}
+			else
+			{
+				//We hit sky
+				Accumulator = Accumulator + (GetSkyRadiance(Ray.Direction, 10.0f) * 0.175); //0.175 is the average multiplier of sky light power compared to direct sunlight
+			}
+		}
+		
+		//Average
+		Final = Accumulator / GISamples;
+		
+		//Send Probe Data to Columns
+		
+		//First row (Probe Final Color)
+		RWProbeTexture[PixelCoord] = float4(Final, 1.0f);
+		
+		//Second row (Probe World Position)
+		RWProbeTexture[PixelCoord + int2(0,1)] = float4(ProbeWorldPos, 1.0f);
+	}
+	else
+	{
+		//Unused pixels get written as blue
+		if (PixelCoord.y == 2 || PixelCoord.y == 3 || PixelCoord.x >= 1020)
+		{
+			RWProbeTexture[PixelCoord] = float4(0.0f, 0.0f, 1.0f, 1.0f);
+		}
+	}
+}
