@@ -1,4 +1,4 @@
-##__AquaRay Raytracer for Unreal Engine 5.2.1__
+## __AquaRay Raytracer for Unreal Engine 5.2.1__
 A Custom Hacked-In DXR Realtime Raytracer for Unreal Engine 5.2.1 Built for my Upcoming Game Project "BryceIB"
 ![Screenshot](yay/img1.png
 
@@ -9,7 +9,7 @@ After YEARS of brute forcing a solution, I came up with this.... hack. It uses U
 It should work in Unreal 5.2.1, but im not sure about other versions. But you can try
 Make sure you have a HWRT DirectX 16 SM6 Capable GPU, the sample project runs around 120fps on Geforce RTX 3050 
 
-#__How to Install__
+# __How to Install__
 1: Install Unreal Engine 5.2.1 Source  if you havent already
 -Should be 108GB in size, make sure to install on a fast drive, or you will be waiting DAYS for it to compile
 -https://www.unrealengine.com/en-US/ue-on-github
@@ -30,7 +30,7 @@ Make sure you have a HWRT DirectX 16 SM6 Capable GPU, the sample project runs ar
 -In the Details Panel, Click "Apply Settings", and "Enable Aquaray"
 -After Clicking the button of Doom, you will be either Greeted by a "D3D Crashed" window, or a Fantastic Fully Raytraced Scene in your Viewport
 
-#__Footnotes__
+# __Footnotes__
 
 The Sample project uses:
 -Skyboxes from [PolyHaven](https://polyhaven.com/)
