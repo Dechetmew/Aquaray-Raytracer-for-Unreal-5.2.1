@@ -11,23 +11,36 @@ Make sure you have a HWRT DirectX 16 SM6 Capable GPU, the sample project runs ar
 
 # __How to Install__
 1: Install Unreal Engine 5.2.1 Source  if you havent already
+
 -Should be 108GB in size, make sure to install on a fast drive, or you will be waiting DAYS for it to compile
+
 -https://www.unrealengine.com/en-US/ue-on-github
+
 -https://dev.epicgames.com/documentation/en-us/unreal-engine/building-unreal-engine-from-source
+
 
 2: Compile a Vannila Build of 5.2.1 and test if its all working
 
+
 3: Replace/add files from this repository to your Engine Source
+
 -NOTE: For RayTracingDebug.cpp you must find the if statement for enabling the PrimaryRays viewmode in your source, and Replace it with the version on this Repository
+
 -Other files should be only Replace/Add
+
 
 4: Recompile the Engine Again
 
+
 5: Download the AquaRay sample Project from this Repository and add it to your Unreal Projects folder
 
+
 6: If all stars Align, you should successfully load into the project without any Explosions or Crashes
+
 -Load into "emptytestmap" and Click the AquaRayController Actor
+
 -In the Details Panel, Click "Apply Settings", and "Enable Aquaray"
+
 -After Clicking the button of Doom, you will be either Greeted by a "D3D Crashed" window, or a Fantastic Fully Raytraced Scene in your Viewport
 
 # __Footnotes__
