@@ -51,5 +51,7 @@ Make sure you have a HWRT DirectX 16 SM6 Capable GPU, the sample project runs ar
 # __Footnotes__
 
 The Sample project uses:
+
 -Skyboxes from [PolyHaven](https://polyhaven.com/)
+
 -Some Models by the [Stanford University](https://graphics.stanford.edu/data/3Dscanrep/)
