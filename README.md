@@ -1,4 +1,5 @@
-## __AquaRay Raytracer for Unreal Engine 5.2.1__
+## __AquaRay Raytracer for Unreal Engine 5.2.1 (WIP)__
+# V0.4.12
 A Custom Hacked-In DXR Realtime Raytracer for Unreal Engine 5.2.1 Built for my Upcoming Game Project "BryceIB"
 ![alt text](yay/img1.png)
 
