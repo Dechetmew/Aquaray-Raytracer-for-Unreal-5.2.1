@@ -1,4 +1,4 @@
-// AquaRay Raytracer 
+// Aquaray Raytracer 
 
 #include "RendererPrivate.h"
 #include "GlobalShader.h"
