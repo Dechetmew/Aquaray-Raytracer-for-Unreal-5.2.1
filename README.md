@@ -1,5 +1,5 @@
-## __AquaRay Raytracer for Unreal Engine 5.2.1 (WIP)__
-# V0.4.12
+# __AquaRay Raytracer for Unreal Engine 5.2.1 (WIP)__
+## V0.4.12
 A Custom Hacked-In DXR Realtime Raytracer for Unreal Engine 5.2.1 Built for my Upcoming Game Project "BryceIB"
 ![alt text](yay/img1.png)
 
@@ -11,7 +11,7 @@ It should work in Unreal 5.2.1, but im not sure about other versions. But you ca
 
 Make sure you have a HWRT DirectX 16 SM6 Capable GPU, the sample project runs around 120fps on Geforce RTX 3050 
 
-# __How to Install__
+## __How to Install__
 1. Install Unreal Engine 5.2.1 Source  if you havent already
 
 Should be 108GB in size, make sure to install on a fast drive, or you will be waiting DAYS for it to compile
@@ -50,7 +50,7 @@ In the Details Panel, Click "Apply Settings", and "Enable Aquaray"
 
 After Clicking the button of Doom, you will be either Greeted by a "D3D Crashed" window, or a Fantastic Fully Raytraced Scene in your Viewport
 
-# __Footnotes__
+## __Footnotes__
 
 The Sample project uses:
 
