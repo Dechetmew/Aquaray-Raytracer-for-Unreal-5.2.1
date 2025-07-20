@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// AquaRay Raytracer 
 
 #include "RendererPrivate.h"
 #include "GlobalShader.h"
