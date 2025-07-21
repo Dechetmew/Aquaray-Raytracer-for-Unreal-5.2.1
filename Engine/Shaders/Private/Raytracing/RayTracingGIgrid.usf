@@ -1,5 +1,5 @@
-// AQUARAY RAYTRACER GLOBAL ILLUMINATION - v0.4.13
-// Method: 
+// AQUARAY RAYTRACER GLOBAL ILLUMINATION - v0.4.15
+//
 
 // INCLUDES
 #include "../DeferredLightingCommon.ush"
@@ -55,7 +55,7 @@ float3 GetProbeWorldPos(int ProbeIndex, float3 CameraPositionWS, float JitterVal
 		int SamplingPosition = ProbeIndex % maxValue; //ID of One of the 85 probes per layer
 		int LayerPosition = ProbeIndex / maxValue; //Which distance layer we are on
 	
-		float Offset = (Layers[LayerPosition] / 2.0f) * ((JitterValue - 0.5) * 2.0f); //add jittering based on distance
+		float Offset = (Layers[LayerPosition] / 2.0f); // * ((JitterValue - 0.5) * 1.0f); //add jittering based on distance
 		float LayerValue = Layers[LayerPosition];
 		float JitteredLayerValue = LayerValue + Offset;
 		float3 DistanceOffset = MetersToCenti(JitteredLayerValue);
@@ -90,13 +90,15 @@ RAY_TRACING_ENTRY_RAYGEN(FRayTracingLightGridShaderRGS)
 	const bool bIgnoreTranslucentMaterials = false;
 	Ray.Direction = float3(0.0f, 0.0f, 0.0f);
 	Ray.TMin = 0.0f;
-	Ray.TMax = MetersToCenti(100.0f);	
+	Ray.TMax = MetersToCenti(100.0f);
+
+	float4 ValidDirections[50];
 	
 	if (PixelCoord.y == 0 && PixelCoord.x < 1020) //last 4 pixels arent used (Note to self: dont forget the texture starts from zero dammit)
 	{
-		float RandOffset1 = float3(12.9898f, 78.233f, 45.164f) * (PixelCoord.x + 1);
-		float RandInput1 = GeometryRand(RandOffset1, 733.5f) * 10.0f;
-		Ray.Origin = GetProbeWorldPos(PixelCoord.x, Ray.Origin, RandInput1);
+		//float RandOffset1 = float3(12.9898f, 78.233f, 45.164f) * (PixelCoord.x + 1);
+		//float RandInput1 = GeometryRand(RandOffset1, 733.5f) * 5.0f;
+		Ray.Origin = GetProbeWorldPos(PixelCoord.x, Ray.Origin, 1.0f);
 		float3 ProbeWorldPos = Ray.Origin;
 		
 		for (int i = 0; i < GISamples; i++)
@@ -104,7 +106,8 @@ RAY_TRACING_ENTRY_RAYGEN(FRayTracingLightGridShaderRGS)
 			float RandOffset2 = float3(12.9898f, 78.233f, 45.164f) * (i + 1);
 		
 			float2 RandInput2 = GeometryRand(RandOffset2, 733.5f);
-			Ray.Direction = UniformSampleSphere(RandInput2);
+			Ray.Direction = UniformSampleSphereInVolume(RandInput2);
+			float3 BaseDirection = Ray.Direction;
 		
 			Payload = TraceMaterialRay(
 				TLAS,
@@ -132,35 +135,61 @@ RAY_TRACING_ENTRY_RAYGEN(FRayTracingLightGridShaderRGS)
 					
 					if(MinimalPayload.IsHit())
 					{
-						//We have a Diffuse Bounce
-						Accumulator = Accumulator + (Lambert(SunDirection, Payload.WorldNormal) * Payload.BaseColor);
+						//We found the sun, the base direction is valid
+						ValidDirections[i] = float4(BaseDirection, 1.0f);
 					}
 					else
 					{
-						//We hit a wall again
-						Accumulator = Accumulator + float3(0.0f, 0.0f, 0.0f);
+						//We hit a wall again, the base direction is invalid
+						ValidDirections[i] = float4(0.0f, 0.0f, 0.0f, 0.0f);
 					}
 				}
 				else
 				{
-					//The Surface cannot be Lit Anyways
-					Accumulator = Accumulator + float3(0.0f, 0.0f, 0.0f);
+					//The Surface cannot be Lit Anyways, the base direction is invalid
+					ValidDirections[i] = float4(0.0f, 0.0f, 0.0f, 0.0f);
 				}
 			}
 			else
 			{
-				//We hit sky
-				Accumulator = Accumulator + (GetSkyRadiance(Ray.Direction, 10.0f) * 0.175); //0.175 is the average multiplier of sky light power compared to direct sunlight
+				//We hit sky, the base direction is valid
+				ValidDirections[i] = float4(BaseDirection, 1.0f);
 			}
 		}
 		
-		//Average
-		Final = Accumulator / GISamples;
+		//Here you should average out a good direction
+		float3 Accumulated = float3(0.0f, 0.0f, 0.0f);
+		int Count = 0;
+
+		for (int i = 0; i < GISamples; i++)
+		{
+			if (ValidDirections[i].w == 1.0f)
+			{
+				Accumulated += ValidDirections[i].xyz;
+				Count++;
+			}
+		}
+
+		float3 Final = float3(0.0f, 0.0f, 0.0f);
+		float FinalAlpha = 0.0f;
+
+		if (Count > 0)
+		{
+			float3 Average = Accumulated / Count;
+			float LengthSq = dot(Average, Average);
+		
+			// Reject average if the result is nearly zero (e.g. opposite vectors canceled each other)
+			if (LengthSq > 1e-4f)
+			{
+				Final = normalize(Average);
+				FinalAlpha = 1.0f;
+			}
+		}
 		
 		//Send Probe Data to Columns
 		
-		//First row (Probe Final Color)
-		RWProbeTexture[PixelCoord] = float4(Final, 1.0f);
+		//First row (Probe Direction)
+		RWProbeTexture[PixelCoord] = float4(Final, FinalAlpha);
 		
 		//Second row (Probe World Position)
 		RWProbeTexture[PixelCoord + int2(0,1)] = float4(ProbeWorldPos, 1.0f);

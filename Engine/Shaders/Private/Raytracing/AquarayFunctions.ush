@@ -1,4 +1,4 @@
-//AQUARAY RAYTRACER - v0.4.11 Functions File
+//AQUARAY RAYTRACER - v0.4.15 Functions File
 
 #pragma once
 #include "../DeferredLightingCommon.ush"
@@ -7,6 +7,18 @@
 #include "RayTracingLightingCommon.ush"
 
 /////////////////////////////////////////////////// FUNCTIONS
+
+float3 UniformSampleSphereInVolume(float2 rand)
+{
+	float z = 1.0f - 2.0f * rand.x;                     // Map rand.x from [0,1] to [-1,1]
+	float r = sqrt(saturate(1.0f - z * z));             // radius in XY plane
+	float phi = 6.2831853f * rand.y;                    // 2π * rand.y
+
+	float x = r * cos(phi);
+	float y = r * sin(phi);
+
+	return float3(x, y, z);                             // Unit vector on sphere
+}
 
 //Different Hash?
 float Hash13(float3 p)
