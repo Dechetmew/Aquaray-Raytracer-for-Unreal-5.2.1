@@ -12,9 +12,7 @@ It should work in Unreal 5.2.1, but im not sure about other versions. But you ca
 Make sure you have a HWRT DirectX 16 SM6 Capable GPU, the sample project runs around 120fps on Geforce RTX 3050 
 
 ## __Current Progress__
-Currently im Trying to solve Indirect Lighting in any way Possible (Uncomment line 461 in the main shader to see the mess)
-
-Planned for Future: Reflections, Translucency, Caustic Effects
+Currently im Trying to solve Indirect Lighting in any way Possible. Its a mess right now and I hope I figure this out within my lifetime
 
 ## __How to Install__
 1. Install Unreal Engine 5.2.1 Source  if you havent already
