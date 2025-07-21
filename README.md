@@ -31,7 +31,7 @@ https://dev.epicgames.com/documentation/en-us/unreal-engine/building-unreal-engi
 
 3. Replace/add files from this repository to your Engine Source
 
-NOTE: For RayTracingDebug.cpp you must find the if statement for enabling the PrimaryRays viewmode in your source, and Replace it with the version on this Repository
+NOTE: For RayTracingDebug.cpp you must find the if statement for enabling the PrimaryRays viewmode in your source, and Replace it with the version on this Repository. Similiar for DeferredShadingRenderer.h
 
 Other files should be only Replace/Add
 
