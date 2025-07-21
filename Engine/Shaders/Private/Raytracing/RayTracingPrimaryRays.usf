@@ -368,9 +368,9 @@ RAY_TRACING_ENTRY_RAYGEN(RayTracingPrimaryRaysRGS)
 			}
 			Raysample.RTAO = accumulatedFloat / 5.0f;
 
-			//END OF MICROCODE
+			//END
 			
-			// INDIRECT LIGHTING MICROCODE
+			// INDIRECT LIGHTING
 			//Due to how I mix direct and indirect lighting, I will have to calculate it even on directly lit pixels to allow smooth mixing.
 			//Maybe cut it off if the DirectLightMask is high enough?
 			//Here we sample and apply Global Illumination
@@ -381,27 +381,91 @@ RAY_TRACING_ENTRY_RAYGEN(RayTracingPrimaryRaysRGS)
 			
 			GetClosestProbeIndices(SurfaceHit.HitPos, CurrentLayer, ClosestGIprobes[0], ClosestGIprobes[1], ClosestGIprobes[2], ClosestGIprobes[3]);
 			
-			float3 s1 = ProbeTexture.Load(int3(ClosestGIprobes[0], 0, 0)).rgb;
-			float3 s2 = ProbeTexture.Load(int3(ClosestGIprobes[1], 0, 0)).rgb;
-			float3 s3 = ProbeTexture.Load(int3(ClosestGIprobes[2], 0, 0)).rgb;
-			float3 s4 = ProbeTexture.Load(int3(ClosestGIprobes[3], 0, 0)).rgb;
+			//colors
+			float3 cc1 = ProbeTexture.Load(int3(ClosestGIprobes[0], 0, 0)).rgb;
+			float3 cc2 = ProbeTexture.Load(int3(ClosestGIprobes[1], 0, 0)).rgb;
+			float3 cc3 = ProbeTexture.Load(int3(ClosestGIprobes[2], 0, 0)).rgb;
+			float3 cc4 = ProbeTexture.Load(int3(ClosestGIprobes[3], 0, 0)).rgb;
 			
-			float3 GIfinal = (s1 + s2 + s3 + s4) / 4.0f;
+			//add alpha for Color
+			float4 c1 = float4(cc1,1.0f);
+			float4 c2 = float4(cc2,1.0f);
+			float4 c3 = float4(cc3,1.0f);
+			float4 c4 = float4(cc4,1.0f);
 			
-			if (ClosestGIprobes[0] < 0)
+			//positions
+			float3 p1 = ProbeTexture.Load(int3(ClosestGIprobes[0], 1, 0)).rgb;
+			float3 p2 = ProbeTexture.Load(int3(ClosestGIprobes[1], 1, 0)).rgb;
+			float3 p3 = ProbeTexture.Load(int3(ClosestGIprobes[2], 1, 0)).rgb;
+			float3 p4 = ProbeTexture.Load(int3(ClosestGIprobes[3], 1, 0)).rgb;
+
+			//this is where visibility checks were
+			
+			// Store distances and alphas
+			float distances[4];
+			float alphas[4] = { c1.a, c2.a, c3.a, c4.a };
+			float3 positions[4] = { p1, p2, p3, p4 };
+			float3 colors[4] = { c1.rgb, c2.rgb, c3.rgb, c4.rgb };
+
+			float3 P = SurfaceHit.HitPos;
+
+			// First, collect valid distances
+			float minDist = 1e9;
+			float maxDist = -1.0;
+
+			for (int i = 0; i < 4; ++i)
 			{
-				Raysample.IndirectLightColor = float3(1, 0, 0); // invalid index if true
+				if (alphas[i] > 0.5f)
+				{
+					distances[i] = length(positions[i] - P);
+					minDist = min(minDist, distances[i]);
+					maxDist = max(maxDist, distances[i]);
+				}
+				else
+				{
+					distances[i] = -1.0; // Mark invalid
+				}
+			}
+
+			// Remap and accumulate weighted colors
+			float3 sum = float3(0, 0, 0);
+			float totalWeight = 0.0;
+
+			for (int i = 0; i < 4; ++i)
+			{
+				if (distances[i] >= 0.0f)
+				{
+					// Remap distance to weight
+					float t = (maxDist > minDist) ? ((distances[i] - minDist) / (maxDist - minDist)) : 0.0f;
+					float weight = lerp(1.0f, 0.0f, t); // closest = 1.0, farthest = 0.1
+
+					sum += colors[i] * weight;
+					totalWeight += weight;
+				}
+			}
+
+			float3 GIfinal = (totalWeight > 0.0f) ? (sum / totalWeight) : float3(0, 0, 0);
+			
+			bool anyInvalid = any(int4(
+			ClosestGIprobes[0] < 0,
+			ClosestGIprobes[1] < 0,
+			ClosestGIprobes[2] < 0,
+			ClosestGIprobes[3] < 0));
+
+			if (anyInvalid)
+			{
+				Raysample.IndirectLightColor = float3(1, 0, 1); // invalid index if true
 			}
 			else
 			{
-				//Raysample.IndirectLightColor = GIfinal;
-				Raysample.IndirectLightColor = float3(0.5f,0.5f,0.5f);
+				Raysample.IndirectLightColor = GIfinal;
+				//Raysample.IndirectLightColor = float3(0.5f,0.5f,0.5f);
 				//Raysample.IndirectLightColor = (float3(1.0,1.0,1.0) * CurrentLayer) / 12;
 			}
 			
 		    Raysample.IndirectLightingContribution = 1.0f; // Not needed probably, remove in future
 			
-			// END OF INDIRECT LIGHTING MICROCODE
+			// END OF INDIRECT LIGHTING
 
 			//Terminate Early if Possible
 			if (!CanBeLit(Payload.WorldNormal, SunDirection))

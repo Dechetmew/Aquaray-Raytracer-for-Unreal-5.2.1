@@ -57,7 +57,8 @@ float3 GetProbeWorldPos(int ProbeIndex, float3 CameraPositionWS, float JitterVal
 	
 		float Offset = (Layers[LayerPosition] / 2.0f) * ((JitterValue - 0.5) * 2.0f); //add jittering based on distance
 		float LayerValue = Layers[LayerPosition];
-		float3 DistanceOffset = MetersToCenti(LayerValue);
+		float JitteredLayerValue = LayerValue + Offset;
+		float3 DistanceOffset = MetersToCenti(JitteredLayerValue);
 		return CameraPositionWS + (DirectionSet[SamplingPosition] * DistanceOffset); //get probe pos
 }
 
@@ -94,7 +95,7 @@ RAY_TRACING_ENTRY_RAYGEN(FRayTracingLightGridShaderRGS)
 	if (PixelCoord.y == 0 && PixelCoord.x < 1020) //last 4 pixels arent used (Note to self: dont forget the texture starts from zero dammit)
 	{
 		float RandOffset1 = float3(12.9898f, 78.233f, 45.164f) * (PixelCoord.x + 1);
-		float RandInput1 = GeometryRand(RandOffset1, 733.5f);
+		float RandInput1 = GeometryRand(RandOffset1, 733.5f) * 10.0f;
 		Ray.Origin = GetProbeWorldPos(PixelCoord.x, Ray.Origin, RandInput1);
 		float3 ProbeWorldPos = Ray.Origin;
 		
