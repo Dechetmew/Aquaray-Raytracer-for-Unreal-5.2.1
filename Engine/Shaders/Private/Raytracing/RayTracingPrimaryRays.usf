@@ -458,8 +458,8 @@ RAY_TRACING_ENTRY_RAYGEN(RayTracingPrimaryRaysRGS)
 			}
 			else
 			{
-				Raysample.IndirectLightColor = GIfinal;
-				//Raysample.IndirectLightColor = float3(0.5f,0.5f,0.5f);
+				//Raysample.IndirectLightColor = GIfinal;
+				Raysample.IndirectLightColor = float3(0.5f,0.5f,0.5f);
 				//Raysample.IndirectLightColor = (float3(1.0,1.0,1.0) * CurrentLayer) / 12;
 			}
 			
