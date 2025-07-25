@@ -151,7 +151,6 @@ RAY_TRACING_ENTRY_RAYGEN(RayTracingPrimaryRaysRGS)
 	const bool bIgnoreTranslucentMaterials = false;
 	Ray.TMin = 0.0f;
 	Ray.TMax = MetersToCenti(100.0f);
-	float3 CameraPositionWS = Ray.Origin;
 
 	// STRUCTS
 	FMinimalPayload MinimalPayload; //shadow test payload
